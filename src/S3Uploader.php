@@ -3,6 +3,7 @@
 namespace App;
 
 use Aws\S3\S3Client;
+use Aws\Exception\AwsException;
 
 class S3Uploader
 {
@@ -20,7 +21,9 @@ class S3Uploader
             ]);
 
             return true;
-        } catch (\Exception $e) {
+        } catch (AwsException $e) {
+            // 実務ではここでエラーログ（error_log や Monolog など）を記録します
+//            error_log('S3 Upload Error: ' . $e->getMessage());
             return false;
         }
     }
