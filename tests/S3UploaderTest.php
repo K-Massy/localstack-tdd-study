@@ -9,6 +9,7 @@ use App\S3Uploader;
 class S3UploaderTest extends TestCase
 {
     private S3Client $s3Client;
+    private S3Uploader $uploader;
     private string $bucketName = 'tdd-test-bucket';
 
     // 各テストが実行される直前に毎回自動で呼ばれる初期化メソッド
@@ -35,17 +36,19 @@ class S3UploaderTest extends TestCase
         } catch (\Exception $e) {
             // すでにバケットがある場合は何もしない
         }
+
+        // 3. S3Uploaderクラスのインスタンスを作成する
+        $this->uploader = new S3Uploader($this->s3Client);
     }
 
     public function test_LocalStackのS3にテキストファイルが正しくアップロードできること(): void
     {
         // 1. 準備 (Arrange)
-        $uploader = new S3Uploader($this->s3Client);
         $fileName = 'hello.txt';
         $content  = 'Hello, LocalStack TDD!';
 
         // 2. 実行 (Act)
-        $isSuccess = $uploader->upload($this->bucketName, $fileName, $content);
+        $isSuccess = $this->uploader->upload($this->bucketName, $fileName, $content);
 
         // 3. 検証 (Assert)
         // ① uploadメソッド自体が true を返しているか？
@@ -58,4 +61,21 @@ class S3UploaderTest extends TestCase
         ]);
         $this->assertSame($content, (string) $result['Body']);
     }
+
+    public function test_存在しないバケットへのアップロード時はfalseを返すこと(): void
+    {
+        // 1. 準備 (Arrange)
+        // 絶対に存在しないバケット名を指定する
+        $invalidBucket = 'non-existent-bucket-99999';
+        $key = 'test-error.txt';
+        $content = 'このデータはアップロードされないはず';
+
+        // 2. 実行 (Act)
+        $result = $this->uploader->upload($invalidBucket, $key, $content);
+
+        // 3. 検証 (Assert)
+        // 例外で落ちずに、安全に false が返ってくることを期待する
+        $this->assertTrue($result);
+    }
+
 }
