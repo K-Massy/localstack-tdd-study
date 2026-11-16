@@ -152,7 +152,7 @@ activemq-data/
 # Environments
 .env
 .envrc
-.venv
+#.venv
 env/
 venv/
 ENV/
@@ -221,3 +221,7 @@ __marimo__/
 
 volume/
 vendor/
+
+.venv
+.__pycache__/
+..pytest_cache/
